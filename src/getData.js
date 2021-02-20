@@ -21,17 +21,17 @@ const saveData = async (data) => {
 }
 
 const itemTypeFixMap = new Map([
-  ['角色活动祈愿', '301'],
-  ['武器活动祈愿', '302'],
-  ['常驻祈愿', '200'],
-  ['新手祈愿', '100']
+  ['Limited Character', '301'],
+  ['Weapon', '302'],
+  ['Permanent', '200'],
+  ['Novice', '100']
 ])
 
 const defaultTypeMap = new Map([
-  ['301', '角色活动祈愿'],
-  ['302', '武器活动祈愿'],
-  ['200', '常驻祈愿'],
-  ['100', '新手祈愿']
+  ['301', 'Limited Character'],
+  ['302', 'Weapon'],
+  ['200', 'Permanent'],
+  ['100', 'Novice']
 ])
 
 const readData = async () => {
@@ -60,10 +60,10 @@ const sortData = (data) => {
       timestamp: new Date(time)
     }
   }).sort((a, b) => a.timestamp - b.timestamp)
-  .map(item => {
-    const { time, name, type, rank } = item
-    return [time, name, type, rank]
-  })
+    .map(item => {
+      const { time, name, type, rank } = item
+      return [time, name, type, rank]
+    })
 }
 
 const mergeList = (a, b) => {
@@ -101,7 +101,7 @@ const readLog = async () => {
     const userPath = app.getPath('home')
     const gameNames = await detectGameLocale(userPath)
     if (!gameNames.length) {
-      sendMsg('未找到游戏日志，确认是否已打开游戏抽卡记录')
+      sendMsg('The game log is not found, confirm whether the wish history has been opened ')
       return false
     }
     const promises = gameNames.map(async name => {
@@ -117,10 +117,10 @@ const readLog = async () => {
         return url
       }
     }
-    sendMsg('未找到URL')
+    sendMsg('URL not found')
     return false
   } catch (e) {
-    sendMsg('读取日志失败')
+    sendMsg('Failed to read log')
     return false
   }
 }
@@ -133,12 +133,12 @@ const getGachaLog = async (key, page, name, retryCount = 5) => {
     return res.data.list
   } catch (e) {
     if (retryCount) {
-      sendMsg(`获取${name}第${page}页失败，5秒后进行第${6 - retryCount}次重试……`)
+      sendMsg(`Getting ${name} #${page} Failed ${6 - retryCount} - Retry`)
       await sleep(5)
       retryCount--
       return await getGachaLog(key, page, name, retryCount)
     } else {
-      sendMsg(`获取${name}第${page}页失败，已超出重试次数`)
+      sendMsg(`Getting ${name} #${page} Failed, retries exceeded `)
       throw e
     }
   }
@@ -150,10 +150,10 @@ const getGachaLogs = async (name, key) => {
   let res = []
   do {
     if (page % 10 === 0) {
-      sendMsg(`正在获取${name}第${page}页，每10页休息1秒……`)
+      sendMsg(`Getting ${name} page #${page}...`)
       await sleep(1)
     }
-    sendMsg(`正在获取${name}第${page}页`)
+    sendMsg(`Getting ${name} page #${page}`)
     res = await getGachaLog(key, page, name)
     if (!uid && res.length) {
       uid = res[0].uid
@@ -171,7 +171,7 @@ const getData = async () => {
   if (!url) return false
   const { searchParams } = new URL(url)
   if (!searchParams.get('authkey')) {
-    sendMsg('没能从URL中获取到authkey')
+    sendMsg('Failed to get the authkey from the URL')
     return false
   }
   if (localData && localData.lang) {
@@ -181,7 +181,7 @@ const getData = async () => {
   const queryString = searchParams.toString()
   GachaTypesUrl = `https://hk4e-api.mihoyo.com/event/gacha_info/api/getConfigList?${queryString}`
   GachaLogBaseUrl = `https://hk4e-api.mihoyo.com/event/gacha_info/api/getGachaLog?${queryString}`
-  sendMsg('正在获取抽卡活动类型')
+  sendMsg('Getting the type of banner')
   const res = await request(GachaTypesUrl)
   if (res.retcode !== 0) {
     sendMsg(res.message)
@@ -191,12 +191,12 @@ const getData = async () => {
   const orderedGachaTypes = []
   order.forEach(key => {
     const index = gachaTypes.findIndex(item => item.key === key)
-    if (index !== -1)  {
+    if (index !== -1) {
       orderedGachaTypes.push(gachaTypes.splice(index, 1)[0])
     }
   })
   orderedGachaTypes.push(...gachaTypes)
-  sendMsg('获取抽卡活动类型成功')
+  sendMsg('Succeeded in getting the type of banner')
   for (const type of orderedGachaTypes) {
     const logs = (await getGachaLogs(type.name, type.key)).map((item) => {
       return [item.time, item.name, item.item_type, parseInt(item.rank_type)]

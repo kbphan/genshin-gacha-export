@@ -38,11 +38,11 @@ const detectGameLocale = async (userPath) => {
   try {
     await fs.access(path.join(userPath, '/AppData/LocalLow/miHoYo/', '原神/output_log.txt'), fs.constants.F_OK)
     result.push('原神')
-  } catch (e) {}
+  } catch (e) { }
   try {
     await fs.access(path.join(userPath, '/AppData/LocalLow/miHoYo/', 'Genshin Impact/output_log.txt'), fs.constants.F_OK)
     result.push('Genshin Impact')
-  } catch (e) {}
+  } catch (e) { }
   return result
 }
 
@@ -51,11 +51,11 @@ const appPath = isDev ? path.resolve(__dirname, '..', 'userData') : path.resolve
 const saveJSON = async (name, data) => {
   try {
     await fs.outputJSON(path.join(userDataPath, name), data)
-  } catch (e) {}
+  } catch (e) { }
   try {
     await fs.outputJSON(path.join(appPath, name), data)
   } catch (e) {
-    sendMsg('保存本地数据失败')
+    sendMsg('Failed to save local data')
     sendMsg(e, 'ERROR')
     await sleep(3)
   }
@@ -65,11 +65,11 @@ const readJSON = async (name) => {
   let data = null
   try {
     data = await fs.readJSON(path.join(appPath, name))
-  } catch (e) {}
+  } catch (e) { }
   if (data) return data
   try {
     data = await fs.readJSON(path.join(userDataPath, name))
-  } catch (e) {}
+  } catch (e) { }
   return data
 }
 
